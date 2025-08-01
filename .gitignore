@@ -1,1 +1,3 @@
 model/
+build/
+sqlite/sqlite-vec/
