@@ -112,7 +112,7 @@ int main(int argc, const char* argv[]) {
     db.commit();
     // search
     auto query = embedding->txt_embedding("概述下春天");
-    auto id_dists = db.search(vec_0->readMap<float>(), 5);
+    auto id_dists = db.search(query->readMap<float>(), 5);
     // print results
     for (auto id_dist : id_dists) {
         printf("rowid=%lld distance=%f\n", id_dist.first, id_dist.second);
