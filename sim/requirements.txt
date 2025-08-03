@@ -1,0 +1,3 @@
+llama_index
+llama-index-vector-stores-faiss
+faiss-cpu

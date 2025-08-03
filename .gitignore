@@ -1,3 +1,6 @@
 model/
 build/
 sqlite/sqlite-vec/
+**/__pycache__/
+sim/vector_db
+**/*.parquet

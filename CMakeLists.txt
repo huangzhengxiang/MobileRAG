@@ -124,10 +124,10 @@ add_library(sqlite-vec SHARED
             ${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite-vec/vendor/sqlite3.c)
 add_definitions(-DSQLITE_CORE)
 
-FILE(GLOB VECTOR_DB_SRCS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-add_library(vector_db SHARED ${VECTOR_DB_SRCS})
-target_link_libraries(vector_db sqlite-vec)
+FILE(GLOB RAG_SRCS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+add_library(rag SHARED ${RAG_SRCS})
+target_link_libraries(rag sqlite-vec)
 
-add_executable(vectordb_demo ${CMAKE_CURRENT_LIST_DIR}/demo/vectordb_demo.cpp)
-target_link_libraries(vectordb_demo vector_db MNN MNN_Express llm)
+add_executable(rag_demo ${CMAKE_CURRENT_LIST_DIR}/demo/rag_demo.cpp)
+target_link_libraries(rag_demo rag MNN MNN_Express llm)
 
