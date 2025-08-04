@@ -1,3 +1,4 @@
+#include "RAGEvaluator.hpp"
 #include <string>
 #include <vector>
 

@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import numpy as np
 import cv2
-from typing import List
+from typing import List, Union
 import random
 from tqdm import tqdm
 from itertools import chain
@@ -22,7 +22,8 @@ def get_search_context(row):
     return row["search_results"]["search_context"]
 
 def process(path: str = "validation-00000-of-00004.parquet",
-            num: int=-1):
+            num: int=-1,
+            to_json: Union[None, str]=None):
     questions = []
     answers = []
     docs = []
@@ -43,8 +44,15 @@ def process(path: str = "validation-00000-of-00004.parquet",
                 doc = s
         if len(doc) > 0:
             docs.append(doc)
+    if to_json is not None and isinstance(to_json, str):
+        with open(to_json, "wt") as f:
+            json.dump({"docs": docs,
+                       "questions": questions,
+                       "answers": answers}, 
+                       f, ensure_ascii=False,
+                       indent=4)
     return docs, questions, answers
 
 if __name__=="__main__":
-    docs, _, _ = process()
+    docs, _, _ = process(num=100, to_json="../../../dataset/data/trivia_qa/val00-100.json")
     print(docs)

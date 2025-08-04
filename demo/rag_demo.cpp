@@ -6,6 +6,8 @@
 //
 
 #include "MNNRAG.hpp"
+#include "dataset.hpp"
+#include "RAGEvaluator.hpp"
 #include "llm/llm.hpp"
 #include <fstream>
 #include <stdlib.h>
@@ -60,25 +62,50 @@ static void unittest(std::unique_ptr<Embedding> &embedding, std::string prompt) 
     MNN_PRINT("sum = %f\n", sum);
     MNN_PRINT("\n");
 }
-static void benchmark(std::unique_ptr<Embedding> &embedding, std::string prompt_file) {
-    std::ifstream prompt_fs(prompt_file);
-    std::vector<std::string> prompts;
-    std::string prompt;
-    while (std::getline(prompt_fs, prompt)) {
-        if (prompt.back() == '\r') {
-            prompt.pop_back();
+static void benchmark_trivia_qa(std::unique_ptr<MNNRAG>& rag, 
+                                int build_db,
+                                const std::string& dataset_file) {
+    std::string data;
+    std::vector<std::string> docs;
+    std::vector<std::string> questions;
+    std::vector<std::vector<std::string>> answers;
+
+    // Read file contents into 'data'
+    std::ifstream in_file(dataset_file);
+    if (!in_file) {
+        std::cout << "Failed to open dataset file: " << dataset_file << std::endl;
+        return;
+    }
+
+    std::stringstream buffer;
+    buffer << in_file.rdbuf();
+    data = buffer.str();
+    
+    // read in dataset
+    process_trivia_qa(data, docs, 
+                      questions, answers);
+    
+    // build vectorDB
+    if (build_db) {
+        printf("build vector DB!\n");
+        rag->insertDB(docs);
+    }
+
+    int acc = 0;
+    // evaluate
+    for (int i=0; i<questions.size(); ++i) {
+        auto response = rag->query("Please answer the question： "+questions[i]+"\nPlease output the answer only!\n");
+        std::cout << response << std::endl;
+        if (checkContainCorrects(response, answers[i])) {
+            acc++;
         }
-        prompts.push_back(prompt);
     }
-    prompt_fs.close();
-    for (auto& p: prompts) {
-        unittest(embedding, p);
-    }
+    printf("accuracy: %.2f%%\n", (acc*100.0f)/questions.size());
 }
 
 int main(int argc, const char* argv[]) {
     if (argc < 3) {
-        std::cout << "Usage: " << argv[0] << " embedding_config.json llm_config.json" << std::endl;
+        std::cout << "Usage: " << argv[0] << " embedding_config.json llm_config.json [build_db] [dataset.json]" << std::endl;
         return 0;
     }
     std::string embedding_config_path = argv[1];
@@ -88,6 +115,11 @@ int main(int argc, const char* argv[]) {
     rag->loadDB(1024, "./test.db");
     rag->loadEmbedding(embedding_config_path);
     rag->loadGenerator(llm_config_path);
+
+    if (argc >= 4) {
+        benchmark_trivia_qa(rag, std::stoi(argv[3]), argv[4]);
+        return 0;
+    }
 
     std::vector<std::string> docs = {"在春暖花开的季节，走在樱花缤纷的道路上，人们纷纷拿出手机拍照留念。樱花树下，情侣手牵手享受着这绝美的春光。孩子们在树下追逐嬉戏，脸上洋溢着纯真的笑容。春天的气息在空气中弥漫，一切都显得那么生机勃勃，充满希望。",
         "春天到了，樱花树悄然绽放，吸引了众多游客前来观赏。小朋友们在花瓣飘落的树下玩耍，而恋人们则在这浪漫的景色中尽情享受二人世界。每个人的脸上都挂着幸福的笑容，仿佛整个世界都被春天温暖的阳光和满树的樱花渲染得更加美好。",

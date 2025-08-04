@@ -44,12 +44,27 @@ RAGErrorCode MNNRAG::loadGenerator(const std::string& config_path) {
 
 RAGErrorCode MNNRAG::insertDB(const std::vector<std::string>& docs) {
     db->begin();
+    int i = 0;
+    int print_step = std::max(1, (int)docs.size() / 20);  // ensure step is at least 1
     for (const auto& doc: docs) {
-        auto varp = embedding->txt_embedding(doc, embed_dim);
-        auto code = db->insertVectorTextPair(varp->readMap<float>(), doc);
-        if (code != VectorDB_OK){
-            return VectorDB_Error;
+        if (i%print_step==0) { printf("insert DB: %d%%\n", i*5/print_step); }
+        
+        // chunk and insert
+        const size_t max_chunk_len = db->maxTextLen(); // 2048 including '\0'
+        size_t offset = 0;
+        while (offset < doc.size()) {
+            size_t len = std::min(max_chunk_len, doc.size() - offset);
+            std::string chunk = doc.substr(offset, len);
+            offset += len;
+
+            auto varp = embedding->txt_embedding(chunk, embed_dim);
+            embedding->reset();
+            auto code = db->insertVectorTextPair(varp->readMap<float>(), chunk);
+            if (code != VectorDB_OK) {
+                return VectorDB_Error;
+            }
         }
+        ++i;
     }
     db->commit();
     return RAG_OK;
@@ -67,12 +82,14 @@ std::string MNNRAG::generate(const std::string& question, const std::vector<std:
     }
     std::ostringstream oss;
     llm->response(prompt, &oss, "\n");
+    llm->reset();
     return oss.str();
 }
 
 std::string MNNRAG::query(const std::string& question) {
     // auto start = time();
     auto query = embedding->txt_embedding(question, embed_dim);
+    embedding->reset();
     // coarse-grained search
     auto id_dists = db->search(query->readMap<float>(), db_top_k);
     // auto end = time();

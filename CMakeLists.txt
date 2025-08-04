@@ -37,7 +37,7 @@ include_directories(
                     ${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite-vec/vendor/
                     ${CMAKE_CURRENT_LIST_DIR}/include/
                     # wrapper include
-                    # ${CMAKE_CURRENT_LIST_DIR}/dataset/include
+                    ${CMAKE_CURRENT_LIST_DIR}/dataset/include
                     # ${CMAKE_CURRENT_LIST_DIR}/wrapper/include
                     # MNN include
                     ${CMAKE_CURRENT_LIST_DIR}/MNN/tools/audio/include/
@@ -89,6 +89,7 @@ endif()
 
 # add engine source directory
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/MNN)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/dataset)
 
 # jni file
 # if (BUILD_ANDROID)
@@ -129,5 +130,5 @@ add_library(rag SHARED ${RAG_SRCS})
 target_link_libraries(rag sqlite-vec)
 
 add_executable(rag_demo ${CMAKE_CURRENT_LIST_DIR}/demo/rag_demo.cpp)
-target_link_libraries(rag_demo rag MNN MNN_Express llm)
+target_link_libraries(rag_demo rag dataset MNN MNN_Express llm)
 
