@@ -11,11 +11,16 @@ option(BUILD_ANDROID "build MoPiRAG for Android" OFF)
 option(BUILD_IOS "build MoPiRAG for iOS" OFF)
 
 # if both ON, build android
-if (BUILD_LINUX)
-    set(BUILD_ANDROID OFF)
+if (BUILD_ANDROID)
+    set(BUILD_LINUX OFF)
     set(BUILD_IOS OFF)
 endif()
-if (BUILD_ANDROID)
+if (BUILD_IOS)
+    set(BUILD_LINUX OFF)
+    set(BUILD_ANDROID OFF)
+endif()
+if (BUILD_LINUX)
+    set(BUILD_ANDROID OFF)
     set(BUILD_IOS OFF)
 endif()
 
@@ -127,8 +132,8 @@ add_definitions(-DSQLITE_CORE)
 
 FILE(GLOB RAG_SRCS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 add_library(rag SHARED ${RAG_SRCS})
-target_link_libraries(rag sqlite-vec)
+target_link_libraries(rag sqlite-vec dataset MNN MNN_Express llm)
 
 add_executable(rag_demo ${CMAKE_CURRENT_LIST_DIR}/demo/rag_demo.cpp)
-target_link_libraries(rag_demo rag dataset MNN MNN_Express llm)
+target_link_libraries(rag_demo rag)
 

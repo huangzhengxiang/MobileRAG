@@ -14,7 +14,7 @@ SQLiteVectorDB::SQLiteVectorDB(int dim, const std::string& db_file,
         return;
     }
     std::string sql = "CREATE VIRTUAL TABLE IF NOT EXISTS " 
-        "vec_items USING vec0(ref integer primary key, embedding float[" + std::to_string(dim) \ 
+        "vec_items USING vec0(ref integer primary key, embedding float[" + std::to_string(dim) \
         + "] distance_metric=" + distance_metric + ")"; 
     // std::cout << sql << std::endl;
     if (sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
