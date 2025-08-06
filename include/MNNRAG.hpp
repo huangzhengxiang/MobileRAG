@@ -10,7 +10,7 @@ using namespace MNN::Transformer;
 
 class MNNRAG : public RAG {
 public:
-    MNNRAG();
+    MNNRAG(std::ostream* log=nullptr);
     virtual RAGErrorCode loadDB(int   dim, 
                                 const std::string& vector_db_path = ":memory:",
                                 bool  from_disk=false,
@@ -30,6 +30,8 @@ private:
     std::unique_ptr<VectorDB> db;
     std::unique_ptr<Embedding> embedding;
     std::unique_ptr<Llm> llm;
+    // logger
+    std::ostream* logger = nullptr;
 };
 
 #endif // MNNRAG_Hpp_

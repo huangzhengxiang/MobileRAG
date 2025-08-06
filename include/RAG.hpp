@@ -19,7 +19,8 @@ enum RAGTypeCode {
 
 class RAG {
 public:
-    static RAG* createRAG(RAGTypeCode type=RAGType_MNNRAG);
+    static RAG* createRAG(RAGTypeCode type=RAGType_MNNRAG,
+                          std::ostream* log=nullptr);
     virtual RAGErrorCode loadDB(int   dim, 
                                 const std::string& vector_db_path = ":memory:",
                                 bool  from_disk=false,

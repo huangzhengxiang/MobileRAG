@@ -95,7 +95,7 @@ static void benchmark_trivia_qa(std::unique_ptr<MNNRAG>& rag,
     // evaluate
     for (int i=0; i<questions.size(); ++i) {
         auto response = rag->query("Please answer the question： "+questions[i]+"\nPlease output the answer only!\n");
-        std::cout << response << std::endl;
+        // std::cout << response << std::endl;
         if (checkContainCorrects(response, answers[i])) {
             acc++;
         }
@@ -111,7 +111,7 @@ int main(int argc, const char* argv[]) {
     std::string embedding_config_path = argv[1];
     std::string llm_config_path = argv[2];
 
-    std::unique_ptr<MNNRAG> rag(new MNNRAG());
+    std::unique_ptr<MNNRAG> rag(new MNNRAG(&std::cout));
     rag->loadDB(1024, "./test.db");
     rag->loadEmbedding(embedding_config_path);
     rag->loadGenerator(llm_config_path);

@@ -2,11 +2,15 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <chrono>  // for timing
 
 using namespace MNN::Express;
 
-MNNRAG::MNNRAG() {
-
+MNNRAG::MNNRAG(std::ostream* log) {
+    logger = log;
+    if (logger!=nullptr) {
+        *logger << "MNNRAG initialized!" << std::endl;
+    }
 }
 
 RAGErrorCode MNNRAG::loadDB(int   dim, 
@@ -87,13 +91,24 @@ std::string MNNRAG::generate(const std::string& question, const std::vector<std:
 }
 
 std::string MNNRAG::query(const std::string& question) {
-    // auto start = time();
+    // embed query
+    auto start = std::chrono::system_clock::now();
     auto query = embedding->txt_embedding(question, embed_dim);
     embedding->reset();
+    auto end = std::chrono::system_clock::now();
+    if (logger!=nullptr) {
+        *logger << "embed: " << (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()/1000 << "s" << std::endl; 
+    }
+
     // coarse-grained search
+    start = std::chrono::system_clock::now();
     auto id_dists = db->search(query->readMap<float>(), db_top_k);
-    // auto end = time();
-    // printf("embed+retrieval: %.2fs\n", end-start); 
+    end = std::chrono::system_clock::now();
+    if (logger!=nullptr) {
+        *logger << "retrieval: " << (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()/1000 << "s" << std::endl; 
+    }
+    
+    // generation 
     std::vector<int64_t> ids;
     for (auto id_dist : id_dists) {
         // printf("rowid=%lld distance=%f\n", id_dist.first, id_dist.second);
@@ -101,7 +116,13 @@ std::string MNNRAG::query(const std::string& question) {
     }
     std::vector<std::string> docs;
     db->getTextbyId(ids, docs);
-    return generate(question, docs);
+    start = std::chrono::system_clock::now();
+    auto res = generate(question, docs);
+    end = std::chrono::system_clock::now();
+    if (logger!=nullptr) {
+        *logger << "generation: " << (double)std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()/1000 << "s" << std::endl; 
+    }
+    return res;
 }
 
 MNNRAG::~MNNRAG() {}
