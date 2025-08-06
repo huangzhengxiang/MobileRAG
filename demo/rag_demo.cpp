@@ -94,8 +94,10 @@ static void benchmark_trivia_qa(std::unique_ptr<MNNRAG>& rag,
     int acc = 0;
     // evaluate
     for (int i=0; i<questions.size(); ++i) {
+        std::string q = "Please answer the question： "+questions[i]+"\nPlease output the answer only!\n";
+        std::cout << "Q: " << q << std::flush;
         auto response = rag->query("Please answer the question： "+questions[i]+"\nPlease output the answer only!\n");
-        // std::cout << response << std::endl;
+        std::cout << "A: " << response << std::endl << std::endl;
         if (checkContainCorrects(response, answers[i])) {
             acc++;
         }
