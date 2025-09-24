@@ -6,6 +6,18 @@
 
 using namespace MNN::Express;
 
+VARP txt_embedding(Embedding* embedding, const std::string& txt, int embed_dim=-1) {
+    auto var = embedding->txt_embedding(txt);
+    if (embed_dim==-1) {
+        return var;
+    }
+    int32_t start_ptr[3]={0,0,0};
+    int32_t size_ptr[3]={1,1,embed_dim};
+    auto start = _Const((int32_t*)start_ptr, {3}, NHWC, halide_type_of<int32_t>());
+    auto size = _Const((int32_t*)size_ptr, {3}, NHWC, halide_type_of<int32_t>());
+    return _Slice(var, start, size);
+}
+
 MNNRAG::MNNRAG(std::ostream* log) {
     logger = log;
     if (logger!=nullptr) {
@@ -61,7 +73,7 @@ RAGErrorCode MNNRAG::insertDB(const std::vector<std::string>& docs) {
             std::string chunk = doc.substr(offset, len);
             offset += len;
 
-            auto varp = embedding->txt_embedding(chunk, embed_dim);
+            auto varp = txt_embedding(embedding.get(), chunk, embed_dim);
             embedding->reset();
             auto code = db->insertVectorTextPair(varp->readMap<float>(), chunk);
             if (code != VectorDB_OK) {
@@ -93,7 +105,7 @@ std::string MNNRAG::generate(const std::string& question, const std::vector<std:
 std::string MNNRAG::query(const std::string& question) {
     // embed query
     auto start = std::chrono::system_clock::now();
-    auto query = embedding->txt_embedding(question, embed_dim);
+    auto query = txt_embedding(embedding.get(), question, embed_dim);
     embedding->reset();
     auto end = std::chrono::system_clock::now();
     if (logger!=nullptr) {

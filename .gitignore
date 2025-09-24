@@ -4,3 +4,4 @@ sqlite/sqlite-vec/
 **/__pycache__/
 sim/vector_db
 **/*.parquet
+engine/
